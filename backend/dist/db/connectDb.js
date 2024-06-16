@@ -12,7 +12,6 @@ import { MONGODB_URI } from "../config.js";
 // connects the mongodb database
 const connectDb = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(MONGODB_URI);
         yield mongoose.connect(MONGODB_URI || "");
         console.log("Database connected.");
     }
