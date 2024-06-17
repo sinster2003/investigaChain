@@ -3,10 +3,10 @@ import bcrypt from "bcrypt";
 import generateToken from "../utils/generateToken.js";
 import { NextFunction, Request, Response } from "express";
 
+// authentication logic for email auth users
 const authLoginController = async (req: Request, res: Response, next: NextFunction) => {
     const { username, password } = req.body;
-
-    console.log(username, password);
+    
     try {
         // retrieve the user trying to login
         const user = await userModel.findOne({
@@ -57,10 +57,12 @@ const authLoginController = async (req: Request, res: Response, next: NextFuncti
     }
 }
 
+// authentication logic for google auth users
 const authGoogleController = async (req: Request, res: Response, next: NextFunction) => {
     const { user, account, profile } = req.body;
 
     try {
+        console.log({user,account,profile});
         if(!user) {
             return res.status(404).json({message: "User not found"});
         }
@@ -69,13 +71,16 @@ const authGoogleController = async (req: Request, res: Response, next: NextFunct
 
         // if no user in database create a new google auth user
         if(!loggedInUser) {
+            const saltRounds = await bcrypt.genSalt(10);
+
             const newUser = new userModel({
                 authOId: user.id,
                 name: user.name,
                 username: user.email,
                 email: user.email,
-                password: await bcrypt.hash(user.email, 10),
-                googleAuth: true
+                password: await bcrypt.hash(`${account.providerAccountId}${user.email})}`, saltRounds), // dummy password 
+                googleAuth: true,
+                image: user.image
             });
 
             await newUser.save();

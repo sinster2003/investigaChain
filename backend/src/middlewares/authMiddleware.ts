@@ -1,12 +1,42 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+import { GOOGLE_CLIENT_ID, JWT_SECRET } from "../config.js";
 
-const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    console.log(req.cookies["next-auth.session-token"]);
-    console.log(process.env.JWT_SECRET);
-    const user = jwt.decode(req.cookies["next-auth.session-token"]);
-    console.log(user);
-    next();
+// to make sure multiple properties can be added in Request type
+interface authRequest extends Request {
+    userId?: string 
+} 
+
+const authMiddleware = async (req: authRequest, res: Response, next: NextFunction) => {
+    try {
+        const jwtToken = req.headers["authorization"];
+        const { emailAuth } = jwt.decode(jwtToken as string) as JwtPayload;
+        if(emailAuth) {
+            // type assertion of jwtPayload 
+            const user = jwt.verify(jwtToken as string, JWT_SECRET as string) as JwtPayload;
+            req.userId = user.userId;
+            console.log(req.userId);
+        }
+        else {
+            const client = new OAuth2Client();
+            const ticket = await client.verifyIdToken({
+                idToken: jwtToken as string,
+                audience: GOOGLE_CLIENT_ID
+            });
+            const payload = ticket.getPayload();
+            const userId = payload?.sub;
+            req.userId = userId;
+            console.log(req.userId);
+        }
+        next();
+    }
+    catch(error) {
+        console.log(error);
+        res.status(400).json({
+            message: "Invalid token"
+        })
+    }
 }
 
 export default authMiddleware;

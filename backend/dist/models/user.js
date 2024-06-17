@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
         required: true
+    },
+    image: {
+        type: String,
+        default: null
     }
 });
 // formatting the documents which is json stringified and sent to client

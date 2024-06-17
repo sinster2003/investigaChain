@@ -10,9 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import userModel from "../models/user.js";
 import bcrypt from "bcrypt";
 import generateToken from "../utils/generateToken.js";
+// authentication logic for email auth users
 const authLoginController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password } = req.body;
-    console.log(username, password);
     try {
         // retrieve the user trying to login
         const user = yield userModel.findOne({
@@ -54,22 +54,26 @@ const authLoginController = (req, res, next) => __awaiter(void 0, void 0, void 0
         next();
     }
 });
+// authentication logic for google auth users
 const authGoogleController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { user, account, profile } = req.body;
     try {
+        console.log({ user, account, profile });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
         const loggedInUser = yield userModel.findOne({ authOId: user.id });
         // if no user in database create a new google auth user
         if (!loggedInUser) {
+            const saltRounds = yield bcrypt.genSalt(10);
             const newUser = new userModel({
                 authOId: user.id,
                 name: user.name,
                 username: user.email,
                 email: user.email,
-                password: yield bcrypt.hash(user.email, 10),
-                googleAuth: true
+                password: yield bcrypt.hash(`${account.providerAccountId}${user.email})}`, saltRounds), // dummy password 
+                googleAuth: true,
+                image: user.image
             });
             yield newUser.save();
         }

@@ -24,7 +24,7 @@ const handler = NextAuth({
             // authorizing the credentials given in the frontend by hitting a request to express
             async authorize(credentials, req) {
                 try {
-                    const res = await fetch("http://localhost:3001/api/users/login", {
+                    const res = await fetch(`${process.env.BACKEND_URL}/api/users/login`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"
@@ -53,7 +53,7 @@ const handler = NextAuth({
         async signIn(credentials: any) {
             try {
                 if(credentials.account.provider === "google") {
-                    const response = await fetch("http://localhost:3001/api/users/google", {
+                    const response = await fetch(`${process.env.BACKEND_URL}/api/users/google`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"
@@ -62,7 +62,7 @@ const handler = NextAuth({
                     });
                     const result = await response.json();
                     credentials.user._doc = result?.user;
-                    credentials.user.token = result?.account.access_token;
+                    credentials.user.token = result?.account.id_token;
                 }
                 return true;
             }
