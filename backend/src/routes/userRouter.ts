@@ -1,10 +1,12 @@
-import express, { NextFunction, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import { authGoogleController, authLoginController } from "../controller/loginController.js";
+import authSignupController from "../controller/signupController.js";
 import storyModel from "../models/story.js";
 
 const userRouter = express.Router();
 
+userRouter.post("/signup", authSignupController);
 userRouter.post("/login", authLoginController);
 userRouter.post("/google", authGoogleController);
 

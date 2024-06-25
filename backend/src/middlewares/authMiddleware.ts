@@ -12,12 +12,15 @@ const authMiddleware = async (req: authRequest, res: Response, next: NextFunctio
     try {
         const jwtToken = req.headers["authorization"];
         const { emailAuth } = jwt.decode(jwtToken as string) as JwtPayload;
+        
+        // for email auth verify jwt_token
         if(emailAuth) {
             // type assertion of jwtPayload 
             const user = jwt.verify(jwtToken as string, JWT_SECRET as string) as JwtPayload;
             req.userId = user.userId;
             console.log(req.userId);
         }
+        // for google auth verify id_token
         else {
             const client = new OAuth2Client();
             const ticket = await client.verifyIdToken({

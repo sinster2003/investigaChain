@@ -2,10 +2,22 @@ import userModel from "../models/user.js";
 import bcrypt from "bcrypt";
 import generateToken from "../utils/generateToken.js";
 import { NextFunction, Request, Response } from "express";
+import signinObject from "../zod/signinValidation.js";
 
 // authentication logic for email auth users
 const authLoginController = async (req: Request, res: Response, next: NextFunction) => {
     const { username, password } = req.body;
+
+    const zodResult = signinObject.safeParse({
+        username,
+        password
+    });
+
+    if(!zodResult.success) {
+        return res.status(400).json({
+            message: zodResult.error.message
+        });
+    }
     
     try {
         // retrieve the user trying to login

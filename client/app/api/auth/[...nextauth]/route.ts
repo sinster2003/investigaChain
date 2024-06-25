@@ -52,6 +52,7 @@ const handler = NextAuth({
         // will be called when sign in occurs
         async signIn(credentials: any) {
             try {
+                // when the provider is google hit the google login request to express
                 if(credentials.account.provider === "google") {
                     const response = await fetch(`${process.env.BACKEND_URL}/api/users/google`, {
                         method: "POST",

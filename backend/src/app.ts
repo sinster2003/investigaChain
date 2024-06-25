@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import cookieParser from "cookie-parser";
 import connectDb from "./db/connectDb.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import apiRouter from "./routes/apiRouter.js";
@@ -15,10 +14,9 @@ const corsConfig = {
 }
 
 // converts json to js and makes it available in req.body
-app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.json({limit: "50mb"}));
+app.use(express.urlencoded({extended: true, limit: "50mb"}));
 app.use(cors(corsConfig));
-app.use(cookieParser());
 
 // express router
 app.use("/api", apiRouter);
