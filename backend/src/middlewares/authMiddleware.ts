@@ -2,9 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import { GOOGLE_CLIENT_ID, JWT_SECRET } from "../config.js";
+import userModel from "../models/user.js";
 
 // to make sure multiple properties can be added in Request type
-interface authRequest extends Request {
+export interface authRequest extends Request {
     userId?: string 
 } 
 
@@ -32,6 +33,15 @@ const authMiddleware = async (req: authRequest, res: Response, next: NextFunctio
             req.userId = userId;
             console.log(req.userId);
         }
+
+        const user = await userModel.findById(req.userId);
+
+        if(!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        } 
+
         next();
     }
     catch(error) {

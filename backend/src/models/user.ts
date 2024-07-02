@@ -39,7 +39,16 @@ const userSchema = new mongoose.Schema({
     image: {
         type: String,
         default: null
-    }
+    },
+    metamask: {
+        type: String,
+        default: null
+    },
+    storyId: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Story",
+        required: true
+    }]
 });
 
 // formatting the documents which is json stringified and sent to client
