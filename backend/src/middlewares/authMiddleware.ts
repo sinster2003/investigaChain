@@ -3,22 +3,25 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import { GOOGLE_CLIENT_ID, JWT_SECRET } from "../config.js";
 import userModel from "../models/user.js";
+import { ObjectId } from "mongodb";
 
 // to make sure multiple properties can be added in Request type
 export interface authRequest extends Request {
-    userId?: string 
+    userId?: string | ObjectId
 } 
 
 const authMiddleware = async (req: authRequest, res: Response, next: NextFunction) => {
     try {
         const jwtToken = req.headers["authorization"];
         const { emailAuth } = jwt.decode(jwtToken as string) as JwtPayload;
-        
+        let userPresent = null;
+
         // for email auth verify jwt_token
         if(emailAuth) {
             // type assertion of jwtPayload 
             const user = jwt.verify(jwtToken as string, JWT_SECRET as string) as JwtPayload;
             req.userId = user.userId;
+            userPresent = await userModel.findById(req.userId);
             console.log(req.userId);
         }
         // for google auth verify id_token
@@ -30,13 +33,12 @@ const authMiddleware = async (req: authRequest, res: Response, next: NextFunctio
             });
             const payload = ticket.getPayload();
             const userId = payload?.sub;
-            req.userId = userId;
+            userPresent = await userModel.findOne({authOId: userId});
+            req.userId = userPresent?._id as ObjectId; // so the userId is the ObjectId and not authOId sent to next middleware
             console.log(req.userId);
         }
 
-        const user = await userModel.findById(req.userId);
-
-        if(!user) {
+        if(!userPresent) {
             return res.status(404).json({
                 message: "User not found"
             });

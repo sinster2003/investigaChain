@@ -1,10 +1,10 @@
 import natural from "natural";
 import stopword from "stopword";
-import bcrypt from "bcrypt";
+import { ethers } from "ethers";
 import express, { Request, Response } from "express";
 import storyModel from "../models/story.js";
-import { authGoogleController, authLoginController } from "../controller/loginController.js";
-import authSignupController from "../controller/signupController.js";
+import { authGoogleController, authLoginController } from "../controllers/loginController.js";
+import authSignupController from "../controllers/signupController.js";
 import authMiddleware, { authRequest } from "../middlewares/authMiddleware.js";
 import metamaskMiddleware from "../middlewares/metamaskMiddleware.js";
 
@@ -39,16 +39,16 @@ userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: 
         const tokenizedWords = tokenizer.tokenize(content); // arrays of words
         const patternizedWords = stopword.removeStopwords(tokenizedWords);
 
-        const patterns = patternizedWords.map(word => natural.PorterStemmer.stem(word));
+        let patterns = patternizedWords.map(word => natural.PorterStemmer.stem(word));
+        patterns = patterns.filter(word => word.length > 2);
 
         // store the patterns in mongodb
         storyDoc.patterns = patterns;
         await storyDoc.save();
 
-        // generate a hash along with patterns
-        const saltRounds = await bcrypt.genSalt(10);
+        // generate a hash along with patterns using ethers
         const contentToBeHashed = `${storyDoc.content}${storyDoc.keywords.join("")}${storyDoc.patterns.join("")}${storyDoc.articles.join("")}${storyDoc.references.join("")}`
-        const hashedContent = await bcrypt.hash(contentToBeHashed, saltRounds);
+        const hashedContent = ethers.keccak256(ethers.toUtf8Bytes(contentToBeHashed));
 
         // store the story along with the storyId on chain
         console.log("Hash to store: ", hashedContent);
@@ -83,15 +83,20 @@ userRouter.get("/getstory/:storyid", authMiddleware, async (req: Request, res: R
 
         // compare the hash from blockchain and story retrieved from database
         // yet to be added the hash from blockchain
-        const contentEqual = await bcrypt.compare(`${storyRetrieved.content}${storyRetrieved.keywords.join("")}${storyRetrieved.patterns.join("")}${storyRetrieved.articles.join("")}${storyRetrieved.references.join("")}`, "");
+        // const contentEqual = await bcrypt.compare(`${storyRetrieved.content}${storyRetrieved.keywords.join("")}${storyRetrieved.patterns.join("")}${storyRetrieved.articles.join("")}${storyRetrieved.references.join("")}`, "");
 
         // if yes, deliver the story
-        if(contentEqual) {
-
-        }
-        else {
-
-        }
+        // if(contentEqual) {
+        //     return res.status(400).json({
+        //         story: storyRetrieved,
+        //         message: "Story delivered successfully."
+        //     });
+        // }
+        // else {
+        //     return res.status(400).json({
+        //         message: "Story verification failed. Could not be delivered."
+        //     });
+        // }
     }
     catch(error) {
         res.status(500).json({
