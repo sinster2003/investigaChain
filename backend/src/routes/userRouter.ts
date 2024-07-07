@@ -6,7 +6,10 @@ import storyModel from "../models/story.js";
 import { authGoogleController, authLoginController } from "../controllers/loginController.js";
 import authSignupController from "../controllers/signupController.js";
 import authMiddleware, { authRequest } from "../middlewares/authMiddleware.js";
-import metamaskMiddleware from "../middlewares/metamaskMiddleware.js";
+import metamaskMiddleware, { metamaskType } from "../middlewares/metamaskMiddleware.js";
+import { CHAIN_URL, CONTRACT_ADDRESS } from "../config.js";
+import target from "../story.json";
+import mongoose from "mongoose";
 
 const userRouter = express.Router();
 
@@ -14,55 +17,84 @@ userRouter.post("/signup", authSignupController);
 userRouter.post("/login", authLoginController);
 userRouter.post("/google", authGoogleController);
 
-userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: authRequest, res: Response) => {
+userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: metamaskType, res: Response) => {
     // access the content of the story from the user
     const { title, content, keywords, images, clippings, articles, references } = req.body;
     const userId = req.userId;
+    const metamask = req.metamask;
     
     try {
-        // store it in mongodb
-        const storyDoc = new storyModel({
-            title,
-            content,
-            keywords,
-            articles,
-            references,
-            userId
-        });
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        try {
+            // store it in mongodb
+            const storyDoc = new storyModel({
+                title,
+                content,
+                keywords,
+                articles,
+                references,
+                userId
+            }, {
+                session
+            });
 
-        await storyDoc.save();
+            await storyDoc.save();
 
-        // images and clippings has to be stored in cloud
+            // images and clippings has to be stored in cloud
 
-        // generate patterns to the story
-        const tokenizer = new natural.WordTokenizer();
-        const tokenizedWords = tokenizer.tokenize(content); // arrays of words
-        const patternizedWords = stopword.removeStopwords(tokenizedWords);
+            // generate patterns to the story
+            const tokenizer = new natural.WordTokenizer();
+            const tokenizedWords = tokenizer.tokenize(content); // arrays of words
+            const patternizedWords = stopword.removeStopwords(tokenizedWords);
 
-        let patterns = patternizedWords.map(word => natural.PorterStemmer.stem(word));
-        patterns = patterns.filter(word => word.length > 2);
+            let patterns = patternizedWords.map(word => natural.PorterStemmer.stem(word));
+            patterns = patterns.filter(word => word.length > 2);
 
-        // store the patterns in mongodb
-        storyDoc.patterns = patterns;
-        await storyDoc.save();
+            // store the patterns in mongodb
+            storyDoc.patterns = patterns;
+            await storyDoc.save();
 
-        // generate a hash along with patterns using ethers
-        const contentToBeHashed = `${storyDoc.content}${storyDoc.keywords.join("")}${storyDoc.patterns.join("")}${storyDoc.articles.join("")}${storyDoc.references.join("")}`
-        const hashedContent = ethers.keccak256(ethers.toUtf8Bytes(contentToBeHashed));
+            // generate a hash along with patterns using ethers
+            const contentToBeHashed = `${storyDoc.content}${storyDoc.keywords.join("")}${storyDoc.patterns.join("")}${storyDoc.articles.join("")}${storyDoc.references.join("")}`
+            const hashedContent = ethers.keccak256(ethers.toUtf8Bytes(contentToBeHashed));
 
-        // store the story along with the storyId on chain
-        console.log("Hash to store: ", hashedContent);
+            // store the story along with the storyId on chain
+            console.log("Hash to store: ", hashedContent);
+            
+            const ABI = target.abi;
+            const provider = new ethers.JsonRpcProvider(CHAIN_URL);
+            const contract = new ethers.Contract(
+                CONTRACT_ADDRESS as string,
+                ABI,
+                provider
+            );
 
-        res.status(200).json({
-            message: `${storyDoc._id} successfully uploaded`
-        });
+            const unsignedTx = await contract.addStory.populateTransaction([storyDoc._id, hashedContent, metamask]);
+            
+            unsignedTx.to = CONTRACT_ADDRESS as string;
+            unsignedTx.from = metamask;
+
+            console.log(unsignedTx);
+            await session.commitTransaction();
+
+            res.status(200).json(unsignedTx);
+        }
+        catch(error) {
+            console.log(error);
+            await session.abortTransaction();
+
+            res.status(500).json({
+                message: `Story upload unsuccessful`
+            });
+        }
+        session.endSession();
     }
     catch(error) {
-        console.log(error);
         res.status(500).json({
-            message: `Story upload unsuccessful`
+            message: "Session Error"
         });
-    }
+    } 
 });
 
 userRouter.get("/getstory/:storyid", authMiddleware, async (req: Request, res: Response) => {
@@ -71,32 +103,44 @@ userRouter.get("/getstory/:storyid", authMiddleware, async (req: Request, res: R
 
     try {
         // retrieve the hash of the story from chain
+        const ABI = target.abi;
+        const provider = new ethers.JsonRpcProvider(CHAIN_URL);
+        const contract = new ethers.Contract(
+            CONTRACT_ADDRESS as string,
+            ABI,
+            provider
+        );
 
         // retrieve from the story from mongodb
         const storyRetrieved = await storyModel.findById(storyid);
-
+        
         if(!storyRetrieved) {
             return res.status(404).json({
                 message: "Story not found."
             });
         }
-
+        
+        const storyFromChain = await contract.getStory(storyRetrieved._id);
+        
         // compare the hash from blockchain and story retrieved from database
         // yet to be added the hash from blockchain
-        // const contentEqual = await bcrypt.compare(`${storyRetrieved.content}${storyRetrieved.keywords.join("")}${storyRetrieved.patterns.join("")}${storyRetrieved.articles.join("")}${storyRetrieved.references.join("")}`, "");
+        const hashedContent = ethers.keccak256(ethers.toUtf8Bytes(`${storyRetrieved.content}${storyRetrieved.keywords.join("")}${storyRetrieved.patterns.join("")}${storyRetrieved.articles.join("")}${storyRetrieved.references.join("")}`));
+        const contentFromChain = storyFromChain.storyContent;
+
+        console.log(hashedContent + " " + contentFromChain);
 
         // if yes, deliver the story
-        // if(contentEqual) {
-        //     return res.status(400).json({
-        //         story: storyRetrieved,
-        //         message: "Story delivered successfully."
-        //     });
-        // }
-        // else {
-        //     return res.status(400).json({
-        //         message: "Story verification failed. Could not be delivered."
-        //     });
-        // }
+        if(hashedContent === contentFromChain) {
+            return res.status(400).json({
+                story: storyRetrieved,
+                message: "Story delivered successfully."
+            });
+        }
+        else {
+            return res.status(400).json({
+                message: "Story verification failed. Could not be delivered."
+            });
+        }
     }
     catch(error) {
         res.status(500).json({

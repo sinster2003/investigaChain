@@ -1,22 +1,28 @@
 import { NextFunction, Response } from "express";
 import { authRequest } from "./authMiddleware";
-import userModel from "../models/user.js";
 
-const metamaskMiddleware = async (req: authRequest, res: Response, next: NextFunction) => {
+export interface metamaskType extends authRequest{
+    metamask?: string
+}
+
+const metamaskMiddleware = async (req: metamaskType, res: Response, next: NextFunction) => {
     try {
-        const user = await userModel.findById(req.userId);
-
-        if(!user) {
-            return res.status(404).json({
-                message: "User not found."
-            });
-        }
+        const { metamask } : { metamask: string | null } = req.body;
         
-        if(!user?.metamask) {
+        if(!metamask) {
             return res.status(400).json({
                 message: "Please connect your wallet to access our services."
             });
         }
+
+        if(!metamask?.startsWith("0x")) {
+            return res.status(400).json({
+                message: "Invalid metamask address"
+            });
+        }
+        
+        // add public addres to req object
+        req.metamask = metamask;
 
         next();
     }
