@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import natural from "natural";
 import stopword from "stopword";
 import { ethers } from "ethers";
@@ -8,8 +9,9 @@ import authSignupController from "../controllers/signupController.js";
 import authMiddleware, { authRequest } from "../middlewares/authMiddleware.js";
 import metamaskMiddleware, { metamaskType } from "../middlewares/metamaskMiddleware.js";
 import { CHAIN_URL, CONTRACT_ADDRESS } from "../config.js";
-import target from "../story.json";
-import mongoose from "mongoose";
+
+//@ts-ignore
+import target from "../story.json" assert { type: "json" };
 
 const userRouter = express.Router();
 
@@ -35,11 +37,9 @@ userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: 
                 articles,
                 references,
                 userId
-            }, {
-                session
             });
 
-            await storyDoc.save();
+            await storyDoc.save({ session });
 
             // images and clippings has to be stored in cloud
 
@@ -53,7 +53,7 @@ userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: 
 
             // store the patterns in mongodb
             storyDoc.patterns = patterns;
-            await storyDoc.save();
+            await storyDoc.save({ session });
 
             // generate a hash along with patterns using ethers
             const contentToBeHashed = `${storyDoc.content}${storyDoc.keywords.join("")}${storyDoc.patterns.join("")}${storyDoc.articles.join("")}${storyDoc.references.join("")}`
@@ -70,7 +70,8 @@ userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: 
                 provider
             );
 
-            const unsignedTx = await contract.addStory.populateTransaction([storyDoc._id, hashedContent, metamask]);
+            const args = [storyDoc._id.toString(), hashedContent, metamask];
+            const unsignedTx = await contract.addStory.populateTransaction(...args);
             
             unsignedTx.to = CONTRACT_ADDRESS as string;
             unsignedTx.from = metamask;
