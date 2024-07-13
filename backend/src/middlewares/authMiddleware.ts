@@ -13,11 +13,11 @@ export interface authRequest extends Request {
 const authMiddleware = async (req: authRequest, res: Response, next: NextFunction) => {
     try {
         const jwtToken = req.headers["authorization"];
-        const { emailAuth } = jwt.decode(jwtToken as string) as JwtPayload;
+        const decodedJwt = jwt.decode(jwtToken as string) as JwtPayload;
         let userPresent = null;
 
         // for email auth verify jwt_token
-        if(emailAuth) {
+        if(decodedJwt.emailAuth) {
             // type assertion of jwtPayload 
             const user = jwt.verify(jwtToken as string, JWT_SECRET as string) as JwtPayload;
             req.userId = user.userId;

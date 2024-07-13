@@ -19,6 +19,16 @@ userRouter.post("/signup", authSignupController);
 userRouter.post("/login", authLoginController);
 userRouter.post("/google", authGoogleController);
 
+userRouter.get("/getallstories", async (req: Request, res: Response) => {
+    try {
+        const stories = await storyModel.find({});
+        return res.status(200).json(stories);
+    }
+    catch(error) {
+        console.log(error);
+    }
+});
+
 userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: metamaskType, res: Response) => {
     // access the content of the story from the user
     const { title, content, keywords, images, clippings, articles, references } = req.body;
@@ -98,7 +108,7 @@ userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: 
     } 
 });
 
-userRouter.get("/getstory/:storyid", authMiddleware, async (req: Request, res: Response) => {
+userRouter.get("/getstory/:storyid", async (req: Request, res: Response) => {
     // retrieve the storyId from the user
     const { storyid } = req.params;
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import StoriesCollection from '@/components/StoriesCollection'
 
 const Stories = () => {
   return (
@@ -6,6 +6,7 @@ const Stories = () => {
       <h1 className='text-3xl font-bold py-10 text-transparent bg-gradient-to-tr from-primary to-secondary bg-clip-text'>
         Stories
       </h1>
+      <StoriesCollection/>
     </div>
   )
 }
