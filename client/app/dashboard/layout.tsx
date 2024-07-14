@@ -8,7 +8,7 @@ import React from 'react'
 const Dashboard = ({ children }: { children: React.ReactNode }) => {
   return (
     <div>
-        <div className='bg-background border-b-[1px] border-secondary h-10 flex items-center justify-between py-6 w-full fixed'>
+        <div className='bg-background border-b-[1px] border-secondary h-10 flex items-center justify-between py-6 w-full fixed z-50'>
             <div className='flex gap-2 px-10 items-center'>
                 <Image src='/close.png' alt='close' width={20} height={20}/>
                 <Maximize/>
@@ -19,7 +19,7 @@ const Dashboard = ({ children }: { children: React.ReactNode }) => {
             </div>
         </div>
         <div className='flex justify-between pt-[48px]'>
-            <div className='h-screen border-r-[1px] border-secondary w-10 flex flex-col gap-6 items-center px-2 py-6 fixed'>
+            <div className='h-screen border-r-[1px] border-secondary w-10 flex flex-col gap-6 items-center px-2 py-6 fixed z-50'>
                 <Link href='/dashboard/'><Image src='/welcome.png' alt='welcome' width={24} height={24}/></Link>
                 <Link href='/dashboard/stories'><Image src='/stories.png' alt='stories' width={24} height={24}/></Link>
                 <Link href='/dashboard/search'><Image src='/glass.png' alt='search' width={24} height={24}/></Link>

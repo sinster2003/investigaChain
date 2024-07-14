@@ -28,7 +28,7 @@ const MarkdownEditor = () => {
         ]}
 
         style={{
-          minWidth: "80%",
+          minWidth: "100%",
           minHeight: "70vh"
         }}
       />

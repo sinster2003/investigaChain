@@ -6,6 +6,10 @@ const storySchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    description: {
+        type: String,
+        required: true
+    },
     content: {
         type: String,
         minLength: 500,
@@ -18,9 +22,6 @@ const storySchema = new mongoose.Schema({
     patterns: {
         type: [String],
         required: true
-    },
-    articles: {
-        type: [String],
     },
     references: {
         type: [String]

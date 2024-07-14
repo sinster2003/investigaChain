@@ -1,27 +1,18 @@
-"use client"
-
 import axios from 'axios'
 import StoryCard from './StoryCard'
-import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
 
-const StoriesCollection = () => {
-  const session = useSession();
-  const [stories, setStories] = useState([]);
+const getStories = async () => {
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/users/getallstories`);
+  const stories = await response.data;
+  return stories;
+}
 
-  useEffect(() => {
-    const getStories = async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/users/getallstories`);
-      const stories = await response.data;
-      setStories(stories);
-    }
-
-    getStories();
-  }, []);
+const StoriesCollection = async () => {
+  const stories = await getStories();
 
   return (
-    <div className='flex gap-8 flex-wrap items-center justify-center'>
-      {stories.length > 0 && stories.map((story: any) => <StoryCard key={story.id} title={story.title} content={story.content}/>)}
+    <div className='flex gap-8 flex-wrap items-center justify-center pb-10'>
+      {stories.length > 0 && stories.map((story: any) => <StoryCard key={story.id} title={story.title} content={story.content} tags={story.keywords}/>)}
     </div>
   )
 }
