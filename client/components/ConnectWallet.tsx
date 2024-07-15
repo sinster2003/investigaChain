@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { ethers } from 'ethers'
 import { MetaMaskInpageProvider } from '@metamask/providers'
 import { BrowserProvider } from 'ethers'
+import { metamaskAtom } from '@/state/metamask'
 
 // at a global level ethereum type is added
 declare global {
@@ -16,7 +17,7 @@ declare global {
 
 const ConnectWallet = () => {
   const [provider, setProvider] = useState<BrowserProvider>();
-  const [address, setAddress] = useState("");
+  const [metamaskAddress, setMetamaskAddress] = useRecoilState(metamaskAtom);
 
   const connectMetamask = async () => {  
     if(window.ethereum) {
@@ -28,7 +29,7 @@ const ConnectWallet = () => {
         const provider = new ethers.BrowserProvider(window.ethereum);
         setProvider(provider);
         const address = await (await provider.getSigner()).getAddress();
-        setAddress(address);
+        setMetamaskAddress(address);
     }
     else {
         console.log('Install Metamask Extension');
@@ -37,7 +38,7 @@ const ConnectWallet = () => {
 
   return (
     <div className='flex flex-row gap-4 items-center'>
-        {(address && address.length > 0) && <div>Your Address: {address}</div>}
+        {(metamaskAddress && metamaskAddress.length > 0) && <div>Your Address: {metamaskAddress}</div>}
         <Button variant="outline" className='flex gap-2 items-center' onClick={connectMetamask}>
             <Image src='/metamask.png' alt='Metamask' width={24} height={24} />
             <span>Connect Wallet</span>

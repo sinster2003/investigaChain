@@ -1,7 +1,6 @@
 import Inputs from '@/components/Inputs'
 import MarkdownEditor from '@/components/MarkdownEditor'
-import { Button } from '@/components/ui/button'
-import React from 'react'
+import EditorButton from '@/components/EditorButton'
 
 const Editor = async () => {
   return (
@@ -14,7 +13,7 @@ const Editor = async () => {
         <MarkdownEditor/>
       </div>
       <Inputs/>
-      <Button className='mt-2 mb-6 w-[20%]'>Submit</Button>
+      <EditorButton/>
     </div>
   )
 }

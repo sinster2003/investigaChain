@@ -12,7 +12,9 @@ export interface authRequest extends Request {
 
 const authMiddleware = async (req: authRequest, res: Response, next: NextFunction) => {
     try {
-        const jwtToken = req.headers["authorization"];
+        console.log(req);
+        const jwtToken = req.body.headers["Authorization"];
+        console.log("jwt", jwtToken);
         const decodedJwt = jwt.decode(jwtToken as string) as JwtPayload;
         let userPresent = null;
 

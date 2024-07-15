@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Session from "@/components/Session";
 import Theme from "@/components/Theme";
+import Recoil from "@/components/Recoil";
 
 const inter = Inter({ 
   subsets: ["latin"]
@@ -20,6 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <Session>
+      <Recoil>
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
           <Theme>
@@ -27,6 +29,7 @@ export default function RootLayout({
           </Theme>
         </body>
       </html>
+      </Recoil>
     </Session>
   );
 }

@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { boolean } from "zod";
 
 const storySchema = new mongoose.Schema({
     title: {
@@ -24,7 +23,8 @@ const storySchema = new mongoose.Schema({
         required: true
     },
     references: {
-        type: [String]
+        type: [String],
+        required: true
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,

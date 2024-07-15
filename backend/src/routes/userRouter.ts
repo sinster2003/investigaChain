@@ -31,20 +31,22 @@ userRouter.get("/getallstories", async (req: Request, res: Response) => {
 
 userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: metamaskType, res: Response) => {
     // access the content of the story from the user
-    const { title, content, keywords, images, clippings, articles, references } = req.body;
+    const { title, content, keywords, description, references } = req.body;
     const userId = req.userId;
     const metamask = req.metamask;
     
     try {
         const session = await mongoose.startSession();
         session.startTransaction();
+        // zod validation has to be added
+        
         try {
             // store it in mongodb
             const storyDoc = new storyModel({
                 title,
                 content,
                 keywords,
-                articles,
+                description,
                 references,
                 userId
             });
@@ -66,7 +68,7 @@ userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: 
             await storyDoc.save({ session });
 
             // generate a hash along with patterns using ethers
-            const contentToBeHashed = `${storyDoc.content}${storyDoc.keywords.join("")}${storyDoc.patterns.join("")}${storyDoc.articles.join("")}${storyDoc.references.join("")}`
+            const contentToBeHashed = `${storyDoc.title}${storyDoc.description}${storyDoc.content}${storyDoc.keywords.join("")}${storyDoc.patterns.join("")}${storyDoc.references.join("")}`
             const hashedContent = ethers.keccak256(ethers.toUtf8Bytes(contentToBeHashed));
 
             // store the story along with the storyId on chain
@@ -123,19 +125,19 @@ userRouter.get("/getstory/:storyid", async (req: Request, res: Response) => {
         );
 
         // retrieve from the story from mongodb
-        const storyRetrieved = await storyModel.findById(storyid);
+        const storyDoc = await storyModel.findById(storyid);
         
-        if(!storyRetrieved) {
+        if(!storyDoc) {
             return res.status(404).json({
                 message: "Story not found."
             });
         }
         
-        const storyFromChain = await contract.getStory(storyRetrieved._id);
+        const storyFromChain = await contract.getStory(storyDoc._id);
         
         // compare the hash from blockchain and story retrieved from database
         // yet to be added the hash from blockchain
-        const hashedContent = ethers.keccak256(ethers.toUtf8Bytes(`${storyRetrieved.content}${storyRetrieved.keywords.join("")}${storyRetrieved.patterns.join("")}${storyRetrieved.articles.join("")}${storyRetrieved.references.join("")}`));
+        const hashedContent = ethers.keccak256(ethers.toUtf8Bytes(`${storyDoc.title}${storyDoc.description}${storyDoc.content}${storyDoc.keywords.join("")}${storyDoc.patterns.join("")}${storyDoc.references.join("")}`));
         const contentFromChain = storyFromChain.storyContent;
 
         console.log(hashedContent + " " + contentFromChain);
@@ -143,7 +145,7 @@ userRouter.get("/getstory/:storyid", async (req: Request, res: Response) => {
         // if yes, deliver the story
         if(hashedContent === contentFromChain) {
             return res.status(400).json({
-                story: storyRetrieved,
+                story: storyDoc,
                 message: "Story delivered successfully."
             });
         }
