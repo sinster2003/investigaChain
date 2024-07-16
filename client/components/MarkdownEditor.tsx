@@ -1,21 +1,25 @@
 "use client"
 
 import MDEditor, { commands } from '@uiw/react-md-editor';
-import { useState } from 'react'
 import { editorAtom } from '@/state/editor';
 import { useRecoilState } from 'recoil';
+import { useEffect, useState } from 'react';
 
 const MarkdownEditor = () => {
   const [editorState, setEditorState] = useRecoilState(editorAtom);
-  const [value, setValue] = useState("**Hello World**");
-  
+  const [ssr, setSsr] = useState(true);
+
+  // when mounted it is on the client
+  useEffect(() => {
+    setSsr(false);
+  }, []);
+
   return (
     <div className="w-full flex justify-center">
       <MDEditor 
-        value={value} 
+        value={!ssr ? editorState.content: ""} 
         onChange={(val) => {
-          setValue(val || "");
-          setEditorState({...editorState, content: value})
+          setEditorState({...editorState, content: val || ""})
         }}
         commands={[
           commands.bold,

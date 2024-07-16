@@ -91,7 +91,7 @@ userRouter.post("/uploadstory", authMiddleware, metamaskMiddleware, async (req: 
             console.log(unsignedTx);
             await session.commitTransaction();
 
-            res.status(200).json(unsignedTx);
+            res.status(200).json({unsignedTx, contract});
         }
         catch(error) {
             console.log(error);

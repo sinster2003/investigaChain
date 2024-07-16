@@ -4,11 +4,11 @@ import Image from 'next/image';
 
 interface StoryProps {
     title: string;
-    content: string;
+    description: string;
     tags: string[];
 }
 
-const StoryCard = ({ title, content, tags }: StoryProps) => {
+const StoryCard = ({ title, description, tags }: StoryProps) => {
   return (
     <div>
         <Card className='w-[350px] h-[400px]'>
@@ -19,7 +19,7 @@ const StoryCard = ({ title, content, tags }: StoryProps) => {
                 <div className='w-full'>
                     <Image src='' alt='thumbnail' objectFit='cover'/>
                 </div>
-                <div>{content.length > 30 ? `${content.slice(0, 25)}...` : content}</div>
+                <div>{description.length > 100 ? `${description.slice(0, 85)}...` : description}</div>
             </CardContent>
             <CardFooter className='flex gap-2 flex-wrap justify-center'>
                 {tags.map((tag, index) => <div key={index} className='bg-secondary w-fit py-2 px-4 rounded-full'>
