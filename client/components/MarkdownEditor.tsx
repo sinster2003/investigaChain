@@ -9,7 +9,7 @@ const MarkdownEditor = () => {
   const [editorState, setEditorState] = useRecoilState(editorAtom);
   const [ssr, setSsr] = useState(true);
 
-  // when mounted it is on the client
+  // when the app is on client side then we retrieve the recoil state
   useEffect(() => {
     setSsr(false);
   }, []);

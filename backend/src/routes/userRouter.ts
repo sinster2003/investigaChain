@@ -133,7 +133,7 @@ userRouter.get("/getstory/:storyid", async (req: Request, res: Response) => {
             });
         }
         
-        const storyFromChain = await contract.getStory(storyDoc._id);
+        const storyFromChain = await contract.getStory(storyDoc._id.toString());
         
         // compare the hash from blockchain and story retrieved from database
         // yet to be added the hash from blockchain
@@ -156,6 +156,7 @@ userRouter.get("/getstory/:storyid", async (req: Request, res: Response) => {
         }
     }
     catch(error) {
+        console.log(error)
         res.status(500).json({
             message: `Story retrieval unsuccessful`
         });

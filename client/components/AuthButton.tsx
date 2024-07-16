@@ -7,8 +7,6 @@ import { Loader2 } from 'lucide-react';
 const AuthButton = () => {
   const session = useSession();
 
-  console.log(session)
-
   return (
     <div>
       {
@@ -17,10 +15,10 @@ const AuthButton = () => {
           <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
           Loading
         </Button> :
-        session.status !== "authenticated" ? 
+        session.status !== "authenticated" ?
         <Button variant="ghost" onClick={() => signIn()}>
           Sign in
-        </Button> : 
+        </Button> :
         <Button variant="ghost" onClick={() => signOut()}>
           Logout
         </Button>

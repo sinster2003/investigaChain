@@ -24,8 +24,10 @@ const ConnectWallet = () => {
     setSsr(false);
   }, []);
 
-  const connectMetamask = async () => {  
+  const connectMetamask = async () => {
+    // metamask injected or not 
     if(window.ethereum) {
+        
         // request for metamask accounts
         await window.ethereum.request({
             method: "eth_requestAccounts"

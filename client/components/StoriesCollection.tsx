@@ -12,7 +12,7 @@ const StoriesCollection = async () => {
 
   return (
     <div className='flex gap-8 flex-wrap items-center justify-center pb-10'>
-      {stories.length > 0 && stories.map((story: any) => <StoryCard key={story.id} title={story.title} description={story.description} tags={story.keywords}/>)}
+      {stories.length > 0 && stories.map((story: any) => <StoryCard key={story.id} id={story.id} title={story.title} description={story.description} tags={story.keywords}/>)}
     </div>
   )
 }

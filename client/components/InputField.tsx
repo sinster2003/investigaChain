@@ -8,7 +8,7 @@ const InputField = ({ title, label }: { title: string, label: string }) => {
   const [editorState, setEditorState] = useRecoilState(editorAtom);
   const [ssr, setSsr] = useState(true);
 
-  // when mounted it is on the client
+  // when mounted it is on the client, activates recoil state
   useEffect(() => {
     setSsr(false);
   }, []);

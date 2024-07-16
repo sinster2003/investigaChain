@@ -15,7 +15,7 @@ interface AccessSession extends Session {
   accessToken?: string;
 }
 
-type AccessSessionType = AccessSession | null
+export type AccessSessionType = AccessSession | null
 
 const EditorButton = () => {
   const [editorState, setEditorState] = useRecoilState(editorAtom);
@@ -45,25 +45,31 @@ const EditorButton = () => {
 
       const result = await response.data;
 
+      // check metamask address if persists & ethereum is injected?
       if(metamask && window.ethereum) {
         try {
           const populatedProvider = new ethers.BrowserProvider(window.ethereum)
+          
+          // user signs the contract
           const signer = await populatedProvider.getSigner();
           const contract = new ethers.Contract(result.contract.target, result.contract.interface.fragments, signer);
-
+          
+          // send the unsigned tx after signing to blockchain
           await signer.sendTransaction(result?.unsignedTx);
           console.log("Successful Transaction");
           
+          // handle event of adding story
           contract?.on("StoryAdded", (data) => {
             console.log(data.storyId);
-            // the form to the original state after successful transaction
-            setEditorState({
-              title: "",
-              description: "",
-              content: "",
-              keywords: [],
-              references: []
-            });
+          });
+
+          // the form to the original state after successful transaction
+          setEditorState({
+            title: "",
+            description: "",
+            content: "",
+            keywords: [],
+            references: []
           });
         }
         catch(error) {
