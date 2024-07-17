@@ -31,7 +31,7 @@ const EditorButton = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post('http://localhost:3001/api/users/uploadstory',
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/story/uploadstory`,
         {
           ...editorState,
           metamask

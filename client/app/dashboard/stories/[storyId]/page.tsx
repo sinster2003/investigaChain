@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 const getStory = async (storyId: string) => {
   try {
-    const response = await fetch(`http://localhost:3001/api/users/getstory/${storyId}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/story/getstory/${storyId}`);
     const story = await response.json();
     return story;
   }
@@ -14,6 +14,7 @@ const getStory = async (storyId: string) => {
  
 const StoryPage = async ({ params }: { params: { storyId: string }}) => {  
   const { story } = await getStory(params.storyId);
+  console.log(story);
 
   return (
     <div className='flex flex-col items-center gap-[65px]'>
@@ -21,7 +22,7 @@ const StoryPage = async ({ params }: { params: { storyId: string }}) => {
         {story?.title}
       </h1>
 
-      <StoryComponent content={story.content}/>
+      <StoryComponent content={story?.content}/>
 
       <div className='flex flex-col w-[80%]'>
         <h2 className='text-xl pt-2 pb-6 font-bold text-transparent bg-gradient-to-tr from-primary to-secondary bg-clip-text text-center self-center'>Keywords</h2>

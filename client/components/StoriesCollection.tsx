@@ -2,7 +2,7 @@ import axios from 'axios'
 import StoryCard from './StoryCard'
 
 const getStories = async () => {
-  const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/users/getallstories`);
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/story/getallstories`);
   const stories = await response.data;
   return stories;
 }
